@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, session
+from flask import Flask, redirect, url_for, session, request, render_template
 from authlib.integrations.flask_client import OAuth
 import os
 
@@ -24,7 +24,19 @@ google = oauth.register(
 # Routes
 @app.route('/')
 def index():
-    return '<a href="/google-login">Login with Google</a>'
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+    
+    # Here, you can implement your authentication logic
+    # For example, check if the username and password are valid
+    # and then redirect to the appropriate page
+    
+    # For demonstration, let's assume a successful login redirects to the profile page
+    return redirect(url_for('profile'))
 
 @app.route('/google-login')
 def google_login():
