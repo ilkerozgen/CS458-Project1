@@ -1,9 +1,16 @@
-from flask import Flask, redirect, url_for, session, request, render_template
+from flask import Flask, redirect, url_for, session, request, jsonify, render_template
 from authlib.integrations.flask_client import OAuth
 import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
+
+# Hardcoded user credentials
+users = {
+    'user1@example.com': 'password1',
+    'user2@example.com': 'password2',
+    'user3@example.com': 'password3'
+}
 
 # Generate a nonce value
 def generate_nonce():
@@ -28,15 +35,14 @@ def index():
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
-    
-    # Here, you can implement your authentication logic
-    # For example, check if the username and password are valid
-    # and then redirect to the appropriate page
-    
-    # For demonstration, let's assume a successful login redirects to the profile page
-    return redirect(url_for('profile'))
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    if username in users and users[username] == password:
+        session['user'] = username
+        return redirect(url_for('profile2'))
+    else:
+        return redirect(url_for('warning'))
 
 @app.route('/google-login')
 def google_login():
@@ -56,10 +62,21 @@ def profile():
         return f'Logged in as {user["name"]} ({user["email"]}) <br><a href="/logout">Logout</a>'
     return 'Not logged in'
 
+@app.route('/profile2')
+def profile2():
+    user = session.get('user')
+    if user:
+        return f'Logged in as {user} <br><a href="/logout">Logout</a>'
+    return 'Not logged in'
+
 @app.route('/logout')
 def logout():
     session.pop('user', None)
     return redirect(url_for('index'))
+
+@app.route('/warning')
+def warning():
+    return 'Invalid Username or Password!'
 
 if __name__ == '__main__':
     app.run(debug=True)
